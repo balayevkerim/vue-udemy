@@ -2,13 +2,16 @@
   "name": "vue-first-app",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://balayevkerim.github.io/vue-udemy",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "deploy":"gh-pages -d dist"
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "gh-pages": "^3.2.3",
     "vue": "^3.0.0",
     "vue-router": "^4.0.14",
     "vuex": "^4.0.2"
