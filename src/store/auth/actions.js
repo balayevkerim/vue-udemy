@@ -1,7 +1,24 @@
-
+let timer;
 export default {
 
-    async login(context,payload) {
+    autoLogin(context) {
+
+        const token = localStorage.getItem('token')
+        const userId = localStorage.getItem('userId')
+        const expirationDate = localStorage.getItem('expiresIn')
+        const isExpired = +expirationDate - new Date().getTime()
+
+        if (isExpired < 0) {
+            return
+        }
+        if (token && userId) {
+            context.commit('setUser', {
+                token: token,
+                userId: userId
+            })
+        }
+    },
+    async login(context, payload) {
         const body = {
             email: payload.email,
             password: payload.password,
@@ -14,6 +31,16 @@ export default {
             })
 
         const responseData = await response.json();
+        console.log(responseData)
+        const expiresIn = +responseData.expiresIn *1000
+        const expirationDate = new Date().getTime() + expiresIn
+        localStorage.setItem('token', responseData.idToken)
+        localStorage.setItem('userId', responseData.localId)
+        localStorage.setItem('expiresIn', expirationDate)
+
+        timer = setTimeout(() => {
+            context.dispatch('logout')
+        }, expiresIn);
         if (!response.ok) {
             const error = new Error(responseData.message || 'Failed to sign up!')
             throw error
@@ -21,7 +48,6 @@ export default {
         const loggedInUser = {
             userId: responseData.localId,
             token: responseData.idToken,
-            tokenExpiration: responseData.expiresIn
         }
 
         context.commit('setUser', loggedInUser)
@@ -40,7 +66,6 @@ export default {
             })
 
         const responseData = await response.json();
-        console.log(responseData)
         if (!response.ok) {
             const error = new Error(responseData.message || 'Failed to sign up!')
             throw error
@@ -48,16 +73,16 @@ export default {
         const newUser = {
             userId: responseData.localId,
             token: responseData.idToken,
-            tokenExpiration: responseData.expiresIn
         }
         context.commit('setUser', newUser)
     },
 
-    logout(context){
-        context.commit('setUser',{
-            userId:null,
-            token:null,
-            tokenExpiration:null
+    logout(context) {
+        localStorage.clear()
+        context.commit('setUser', {
+            userId: null,
+            token: null,
         })
+        clearTimeout(timer)
     }
 }
